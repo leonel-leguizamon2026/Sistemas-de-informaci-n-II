@@ -1,144 +1,96 @@
-import java.util.Scanner;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Scanner;
 
+public class Main {
 
-//CREAR CLASE RESERVA?????
-//INICIAR SESION
-
-
-public class main {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        ArrayList<persona> personas = new ArrayList<>();
-        ArrayList<reserva> reservas = new ArrayList<>();
-         int op=0;
-         
-        habitacion[] habitaciones = new habitacion[60];
 
-int numero = 0;
-//INICIALIZA LA HABITACIONES
-// 12 habitaciones de 1 persona
-for (int i = 0; i < 12; i++) {
-    habitaciones[numero] = new habitacion(numero + 1, 1, "Libre");
-    numero++;
-}
+        ArrayList<Empleado> empleados = Empleado.crearEmpleadosIniciales();
+        ArrayList<Huesped> huespedes = new ArrayList<>();
+        Habitacion[] habitaciones = inicializarHabitaciones();
+        ArrayList<Reserva> reservas = new ArrayList<>();
+        ArrayList<Pedido> pedidos = new ArrayList<>();
+        ArrayList<Turno> turnos = new ArrayList<>();
+        ArrayList<Pago> pagos = new ArrayList<>();
+        ArrayList<Gasto> gastos = new ArrayList<>();
+        ArrayList<Mantenimiento> mantenimientos = new ArrayList<>();
+        ArrayList<RegistroFichaje> fichajes = new ArrayList<>();
 
-// 14 habitaciones de 2 personas
-for (int i = 0; i < 14; i++) {
-    habitaciones[numero] = new habitacion(numero + 1, 2, "Libre");
-    numero++;
-}
+        int legajoIngresado;
 
-// 15 habitaciones de 3 personas
-for (int i = 0; i < 15; i++) {
-    habitaciones[numero] = new habitacion(numero + 1, 3, "Libre");
-    numero++;
-}
+        do {
+            System.out.println("\n==========================================");
+            System.out.println("        SISTEMA DE GESTION HOTELERA       ");
+            System.out.println("==========================================");
+            System.out.println("Rangos de Legajo:");
+            System.out.println("  100-199: Recepcion  | 200-299: Restaurante");
+            System.out.println("  300-399: SPA        | 400-499: Limpieza");
+            System.out.println("  500-599: Gerencia   | 0: Salir");
+            System.out.print("Ingrese su numero de legajo: ");
 
-// 12 habitaciones de 4 personas
-for (int i = 0; i < 12; i++) {
-    habitaciones[numero] = new habitacion(numero + 1, 4, "Libre");
-    numero++;
-}
+            while (!sc.hasNextInt()) {
+                System.out.print("Ingrese un numero valido: ");
+                sc.next();
+            }
+            legajoIngresado = sc.nextInt();
+            sc.nextLine();
 
-// 5 habitaciones de 5 personas
-for (int i = 0; i < 5; i++) {
-    habitaciones[numero] = new habitacion(numero + 1, 5, "Libre");
-    numero++;
-}
+            if (legajoIngresado == 0) {
+                System.out.println("Cerrando sistema...");
+                break;
+            }
 
-// 2 habitaciones de 6 personas
-for (int i = 0; i < 2; i++) {
-    habitaciones[numero] = new habitacion(numero + 1, 6, "Libre");
-    numero++;
-}
+            Empleado emp = buscarEmpleado(empleados, legajoIngresado);
+            if (emp == null) {
+                System.out.println("Error: Legajo no encontrado o no autorizado.");
+                continue;
+            }
 
+            fichajes.add(new RegistroFichaje(emp.getLegajo(), emp.getNombre() + " " + emp.getApellido(),
+                    emp.getRol(), "Entrada", LocalDateTime.now()));
 
-//INICIO
-do{
-    System.out.println("INGRESE UNA OPCION: ");
-    System.out.println("1-MESERO/ENCARGADO DE COMANDOS");
-    System.out.println("2-ENCARGADO DE SPA/ERVICIO");
-    System.out.println("3-PERSONAL DE LIMPIEZA");
-    System.out.println("4-RECEPCIONISTA");
-    System.out.println("5-GERENTE");
-    System.out.println("0-SALIR");
-    op = sc.nextInt();
+            System.out.println("\nBienvenido/a " + emp.getNombre() + " " + emp.getApellido()
+                    + " | Rol: " + emp.getRol() + " (Legajo: " + emp.getLegajo() + ")");
 
-    switch(op){
-        //MESERO/ENCARGADO DE COMANDOS
-        case 1:
-            System.out.println("BIENVENIDO MESERO/ENCARGADO DE COMANDOS");
-            break;
-        //ENCARGADO DE SPA/SERVICIO
-        case 2:
-            System.out.println("BIENVENIDO ENCARGADO DE SPA/SERVICIO");
-            break;
-        //PERSONAL DE LIMPIEZA    
-        case 3:
-            System.out.println("BIENVENIDO PERSONAL DE LIMPIEZA");
-            break;
-            //RECEPCIONISTA
-        case 4:
-            System.out.println("BIENVENIDO RECEPCIONISTA");
+            if (legajoIngresado >= 100 && legajoIngresado <= 199) {
+                MenuRecepcion.mostrar(sc, emp, habitaciones, reservas, huespedes, pedidos, turnos, pagos, gastos, mantenimientos);
+            } else if (legajoIngresado >= 200 && legajoIngresado <= 299) {
+                MenuRestaurante.mostrar(sc, emp, habitaciones, pedidos, huespedes, reservas, pagos, mantenimientos);
+            } else if (legajoIngresado >= 300 && legajoIngresado <= 399) {
+                MenuSpa.mostrar(sc, emp, habitaciones, turnos, huespedes, reservas, pagos, mantenimientos);
+            } else if (legajoIngresado >= 400 && legajoIngresado <= 499) {
+                MenuLimpieza.mostrar(sc, emp, habitaciones, mantenimientos);
+            } else if (legajoIngresado >= 500 && legajoIngresado <= 599) {
+                MenuGerencia.mostrar(sc, emp, habitaciones, reservas, pedidos, turnos, pagos, gastos, mantenimientos, fichajes);
+            }
 
-          //MENU PRINCIPAL  RECEPCIONISTA
-         do{
-        System.out.println("INGRESE UNA OPCION: ");
-        System.out.println("1-GESTIONAR RESERVAS");
-         System.out.println("2-GESTION DE GASTOS");
-          System.out.println("0-SALIR");
-          op = sc.nextInt();
+            fichajes.add(new RegistroFichaje(emp.getLegajo(), emp.getNombre() + " " + emp.getApellido(),
+                    emp.getRol(), "Salida", LocalDateTime.now()));
 
-         switch(op){
-             case 1:
-                    gestionR.gestionarReservas(personas, reservas, habitaciones);
-                 break;
-             case 2:
-                    gestionG.gestionarGastos();
-                 break;
-             case 0:
-                 System.out.println("SALIENDO");
-                 break;
-             default:
-                 System.out.println("OPCION INVALIDA");
-         }
+        } while (legajoIngresado != 0);
 
-        }while(op!=0);
-        break;
-        //GERENTE
-
-
-        case 5:
-            System.out.println("BIENVENIDO GERENTE");
-            break;
-        case 0:
-            System.out.println("SALIENDO");
-            break;
-        default:
-            System.out.println("OPCION INVALIDA");
+        sc.close();
     }
 
+    private static Habitacion[] inicializarHabitaciones() {
+        // 15 habitaciones: 10 Singles (101-110), 3 Dobles (111-113), 2 Suites (114-115)
+        Habitacion[] habs = new Habitacion[15];
+        for (int i = 0; i < 15; i++) {
+            int numero = 101 + i;
+            int capacidad = (i < 10) ? 1 : (i < 13) ? 2 : 4;
+            habs[i] = new Habitacion(numero, capacidad, "Disponible");
+        }
+        return habs;
+    }
 
-
-
-
-
-
-
-
-       
-    }while(op!=0);
-
-
-
-
-
-
-
-
-
-
-
+    private static Empleado buscarEmpleado(ArrayList<Empleado> empleados, int legajo) {
+        for (Empleado e : empleados) {
+            if (e.getLegajo() == legajo) {
+                return e;
+            }
+        }
+        return null;
     }
 }
